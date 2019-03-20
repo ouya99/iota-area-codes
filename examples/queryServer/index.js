@@ -8,21 +8,22 @@ const {
   fetchTransactions,
   queryTransactions
 } = require('./components/db')
-const zmq = require('./components/zmq')
+
+const {subscribeToZMQ} = require('./components/zmq')
 
 module.exports = cors(async (req, res) => {
   let response
   try {
     switch (req.url) {
       //// Un-comment when testing
-      // case '/initDatabase':
-      //   initCassandra()
-      //   response = { message: 'Initalizing Cassandra db' }
-      //   break
-      // case '/startSubscribing':
-      //   subscribeToZMQ()
-      //   response = { message: 'Subscribing to ZMQ' }
-      //   break
+       case '/initDatabase':
+         initCassandra()
+         response = { message: 'Initalizing Cassandra db' }
+         break
+      case '/startSubscribing':
+         subscribeToZMQ()
+         response = { message: 'Subscribing to ZMQ' }
+        break
       case '/fetch':
         response = await fetchTransactions()
         break
