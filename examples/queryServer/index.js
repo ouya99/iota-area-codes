@@ -28,6 +28,9 @@ module.exports = cors(async (req, res) => {
         response = await fetchTransactions()
         break
       case '/query':
+        let url_parts = url.parse(req.url, true)
+        console.log(url_parts)
+
         const js = await json(req)
         response = await queryTransactions(js.iac)
         break

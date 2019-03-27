@@ -3,6 +3,7 @@ const client = new cassandra.Client({
   contactPoints: [process.env.DB_URL],
   localDataCenter: 'datacenter1'
 })
+// console.log(process.env.DB_URL)
 const { isValidPartial } = require('@iota/area-codes')
 
 // INIT DB
@@ -18,7 +19,7 @@ const initKeyspace = async () => {
 
 const initTable = async () => {
   // Functions
-  const queries = `CREATE TABLE txDB.transaction (pair0 varchar, pair1 varchar, pair2 varchar, pair3 varchar, pair4 varchar, tx_id varchar, iac varchar, PRIMARY KEY ((pair0), pair1, pair2, pair3, tx_id))`
+  const queries = `CREATE TABLE txDB.transaction (pair0 varchar, pair1 varchar, pair2 varchar, pair3 varchar, pair4 varchar, message varchar, tx_id varchar, iac varchar, PRIMARY KEY ((pair0), pair1, pair2, pair3, tx_id))`
   try {
     return await client.execute(queries)
   } catch (e) {
@@ -49,8 +50,11 @@ const initCassandra = async () => {
 }
 
 const storeTransaction = async array => {
-  const queries = array.map(({ tx_id, iac }) => {
-    const query = `INSERT INTO txDB.transaction (tx_id, iac, pair0, pair1, pair2, pair3, pair4) VALUES (?,?,?,?,?,?,?);`
+  const queries = array.map(({ tx_id, iac, message }) => {
+    if (!message) {
+      message = "ZZZZZZZZZ"
+    }
+    const query = `INSERT INTO txDB.transaction (tx_id, iac, pair0, pair1, pair2, pair3, pair4, message) VALUES (?,?,?,?,?,?,?,?);`
     const params = [
       tx_id,
       iac,
@@ -58,7 +62,8 @@ const storeTransaction = async array => {
       iac.slice(2, 4),
       iac.slice(4, 6),
       iac.slice(6, 8),
-      iac.slice(9, 11)
+      iac.slice(9, 11),
+      message
     ]
     return { query, params }
   })
@@ -70,7 +75,7 @@ const storeTransaction = async array => {
 }
 
 const fetchTransactions = async () => {
-  let query = `SELECT tx_id, iac FROM txDB.transaction`
+  let query = `SELECT tx_id, iac, message FROM txDB.transaction`
   let res = await client.execute(query)
   delete res.info
   return res
